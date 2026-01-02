@@ -1,4 +1,6 @@
 # Binaries (root level only)
+/nexus
+/nexus.exe
 /tasklog
 /tasklog.exe
 *.exe

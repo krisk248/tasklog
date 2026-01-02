@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/krisk248/tasklog/internal/domain"
+	"github.com/krisk248/nexus/internal/domain"
 )
 
 // View renders the entire application
@@ -39,11 +39,11 @@ func (m Model) renderMainLayout() string {
 	taskWidth := totalWidth - calendarWidth - timelineWidth - 2 // 2 for separators
 
 	// Ensure minimum widths
-	if calendarWidth < 22 {
-		calendarWidth = 22
+	if calendarWidth < 30 {
+		calendarWidth = 30
 	}
-	if timelineWidth < 25 {
-		timelineWidth = 25
+	if timelineWidth < 28 {
+		timelineWidth = 28
 	}
 	taskWidth = totalWidth - calendarWidth - timelineWidth - 2
 
@@ -92,8 +92,11 @@ func (m Model) renderMainLayout() string {
 		hints,
 	)
 
-	// Apply background
-	return s.App.Width(m.Width).Height(m.Height).Render(view)
+	// Apply styling to entire screen
+	return lipgloss.NewStyle().
+		Width(m.Width).
+		Height(m.Height).
+		Render(view)
 }
 
 // renderCalendarPane renders the calendar pane
@@ -116,10 +119,10 @@ func (m Model) renderCalendarPane(width, height int) string {
 	monthYear := fmt.Sprintf("%s %d", m.ViewingMonth.MonthName(), m.ViewingMonth.Year)
 	b.WriteString(s.CalendarHeader.Render(monthYear) + "\n\n")
 
-	// Weekday headers
-	weekdays := []string{"Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"}
+	// Weekday headers (4 chars each to match day format)
+	weekdays := []string{" Su ", " Mo ", " Tu ", " We ", " Th ", " Fr ", " Sa "}
 	for _, wd := range weekdays {
-		b.WriteString(s.CalendarDay.Render(wd))
+		b.WriteString(lipgloss.NewStyle().Foreground(c.TextMuted).Render(wd))
 	}
 	b.WriteString("\n")
 
@@ -127,26 +130,32 @@ func (m Model) renderCalendarPane(width, height int) string {
 	grid := domain.GenerateCalendarGrid(m.ViewingMonth)
 	for _, week := range grid.Weeks {
 		for _, day := range week {
-			dayStr := fmt.Sprintf("%2d", day.Day)
-
-			// Determine style
-			var style lipgloss.Style
 			isCurrentMonth := grid.IsCurrentMonth(day)
 			isSelected := day.Equals(m.SelectedDate)
 			isToday := day.IsToday()
 			hasTasks := len(m.Tasks.GetTasksForDate(day.String())) > 0
 
+			// Format day with brackets for selected
+			var dayStr string
+			if isSelected {
+				dayStr = fmt.Sprintf("[%2d]", day.Day)
+			} else {
+				dayStr = fmt.Sprintf(" %2d ", day.Day)
+			}
+
+			// Determine style
+			var style lipgloss.Style
 			switch {
 			case isSelected:
-				style = s.CalendarSelected
+				style = lipgloss.NewStyle().Foreground(c.CalendarSelected)
 			case isToday:
-				style = s.CalendarToday
+				style = lipgloss.NewStyle().Foreground(c.CalendarToday).Bold(true)
 			case !isCurrentMonth:
-				style = s.CalendarOther
+				style = lipgloss.NewStyle().Foreground(c.CalendarOtherMonth)
 			case hasTasks:
-				style = s.CalendarWithTasks
+				style = lipgloss.NewStyle().Foreground(c.CalendarDayWithTasks)
 			default:
-				style = s.CalendarDay
+				style = lipgloss.NewStyle().Foreground(c.TextPrimary)
 			}
 
 			b.WriteString(style.Render(dayStr))
@@ -160,8 +169,14 @@ func (m Model) renderCalendarPane(width, height int) string {
 	for len(lines) < height {
 		lines = append(lines, "")
 	}
+	if len(lines) > height {
+		lines = lines[:height]
+	}
 
-	return s.Pane.Width(width).Height(height).Render(strings.Join(lines[:height], "\n"))
+	return lipgloss.NewStyle().
+		Width(width).
+		Height(height).
+		Render(strings.Join(lines, "\n"))
 }
 
 // renderTaskPane renders the task pane
@@ -238,11 +253,11 @@ func (m Model) renderTaskPane(width, height int) string {
 			selector = "> "
 		}
 
-		// Checkbox
-		checkbox := m.getTaskCheckbox(task)
+		// Checkbox (plain text for length calculation)
+		checkboxText := m.getTaskCheckboxText(task)
 
-		// Priority indicator
-		priority := m.getPriorityIndicator(task)
+		// Priority indicator (plain text)
+		priorityText := m.getPriorityText(task)
 
 		// Expand/collapse indicator
 		expandIcon := ""
@@ -254,23 +269,34 @@ func (m Model) renderTaskPane(width, height int) string {
 			}
 		}
 
-		// Task title with appropriate style
-		titleStyle := m.getTaskStyle(task, isSelected)
-		title := titleStyle.Render(task.Title)
-
 		// Running indicator
+		runningText := ""
+		if task.IsRunning() {
+			runningText = " ●"
+		}
+
+		// Calculate available width for title
+		prefixLen := len(selector) + len(indent) + len(checkboxText) + len(priorityText) + len(expandIcon) + len(runningText)
+		availableWidth := width - prefixLen - 4 // margin
+
+		// Truncate title if needed (on plain text, before styling)
+		titleText := task.Title
+		if len(titleText) > availableWidth && availableWidth > 3 {
+			titleText = titleText[:availableWidth-3] + "..."
+		}
+
+		// Now apply styles
+		checkbox := m.getTaskCheckbox(task)
+		priority := m.getPriorityIndicator(task)
+		titleStyle := m.getTaskStyle(task, isSelected)
+		title := titleStyle.Render(titleText)
+
 		runningIndicator := ""
 		if task.IsRunning() {
 			runningIndicator = lipgloss.NewStyle().Foreground(c.TaskRunning).Render(" ●")
 		}
 
 		line := fmt.Sprintf("%s%s%s%s%s%s%s", selector, indent, checkbox, priority, expandIcon, title, runningIndicator)
-
-		// Truncate if too long
-		if len(line) > width-2 {
-			line = line[:width-5] + "..."
-		}
-
 		b.WriteString(line + "\n")
 	}
 
@@ -281,7 +307,7 @@ func (m Model) renderTaskPane(width, height int) string {
 
 	// Empty state
 	if len(m.FlattenedTasks) == 0 {
-		emptyMsg := "No tasks for this day. Press 'a' to add one."
+		emptyMsg := "No tasks. Press 'a' to add one."
 		b.WriteString(lipgloss.NewStyle().Foreground(c.TextMuted).Render(emptyMsg) + "\n")
 	}
 
@@ -291,8 +317,14 @@ func (m Model) renderTaskPane(width, height int) string {
 	for len(lines) < height {
 		lines = append(lines, "")
 	}
+	if len(lines) > height {
+		lines = lines[:height]
+	}
 
-	return s.Pane.Width(width).Height(height).Render(strings.Join(lines[:height], "\n"))
+	return lipgloss.NewStyle().
+		Width(width).
+		Height(height).
+		Render(strings.Join(lines, "\n"))
 }
 
 // renderTimelinePane renders the timeline pane
@@ -359,8 +391,9 @@ func (m Model) renderTimelinePane(width, height int) string {
 
 	// Empty state
 	if len(events) == 0 {
-		emptyMsg := "No activity yet today."
+		emptyMsg := "No activities yet."
 		b.WriteString(lipgloss.NewStyle().Foreground(c.TextMuted).Render(emptyMsg) + "\n")
+		b.WriteString(lipgloss.NewStyle().Foreground(c.TextMuted).Render("Press 's' to start a task.") + "\n")
 	}
 
 	// Pad to fill height
@@ -369,37 +402,62 @@ func (m Model) renderTimelinePane(width, height int) string {
 	for len(lines) < height {
 		lines = append(lines, "")
 	}
+	if len(lines) > height {
+		lines = lines[:height]
+	}
 
-	return s.Pane.Width(width).Height(height).Render(strings.Join(lines[:height], "\n"))
+	return lipgloss.NewStyle().
+		Width(width).
+		Height(height).
+		Render(strings.Join(lines, "\n"))
 }
 
 // renderKeyboardHints renders the keyboard hints bar
 func (m Model) renderKeyboardHints() string {
-	s := m.Styles
+	c := m.CurrentTheme.Colors
 
-	var hints []string
+	// Style for keys (purple/violet) and descriptions (white)
+	keyStyle := lipgloss.NewStyle().Foreground(c.Primary)
+	descStyle := lipgloss.NewStyle().Foreground(c.TextPrimary)
+	sepStyle := lipgloss.NewStyle().Foreground(c.TextMuted)
+
+	var hintPairs [][]string
 	switch m.ActivePane {
 	case PaneCalendar:
-		hints = []string{"h/l:day", "j/k:week", "n/p:month", "T:today", "Tab:next"}
+		hintPairs = [][]string{
+			{"h/l", "day"}, {"j/k", "week"}, {"n/p", "month"}, {"T", "today"}, {"Tab", "next"},
+		}
 	case PaneTasks:
-		hints = []string{"j/k:nav", "a:add", "e:edit", "d:del", "Space:done", "/:search", "1/2/3:priority"}
+		hintPairs = [][]string{
+			{"j/k", "nav"}, {"a", "add"}, {"e", "edit"}, {"d", "del"},
+			{"Space", "done"}, {"D", "delegate"}, {"x", "delay"}, {"s", "start"},
+			{"/", "search"}, {"1/2/3", "priority"},
+		}
 	case PaneTimeline:
-		hints = []string{"j/k:scroll", "C:clear", "Tab:next"}
+		hintPairs = [][]string{
+			{"j/k", "scroll"}, {"Shift+C", "clear"}, {"Tab", "next"},
+		}
 	}
 
-	globalHints := []string{"?:help", "Ctrl+T:theme", "::overview"}
-	hints = append(hints, globalHints...)
+	// Add global hints
+	globalHints := [][]string{{"?", "help"}, {":", "overview"}, {"L", "logs"}}
+	hintPairs = append(hintPairs, globalHints...)
 
-	hintStr := strings.Join(hints, " │ ")
-	return s.KeyboardHint.Render(hintStr)
+	// Build hint string with styled keys and descriptions
+	var parts []string
+	for _, pair := range hintPairs {
+		key := keyStyle.Render(pair[0])
+		desc := descStyle.Render(pair[1])
+		parts = append(parts, key+":"+desc)
+	}
+
+	sep := sepStyle.Render(" │ ")
+	return strings.Join(parts, sep)
 }
 
 // renderWithDialog renders the main layout with a dialog overlay
 func (m Model) renderWithDialog() string {
-	// Render main layout (dimmed)
-	main := m.renderMainLayout()
-
-	// Render dialog
+	// Render dialog only - simpler approach that works reliably
 	var dialog string
 	switch m.ActiveDialog {
 	case DialogHelp:
@@ -412,44 +470,14 @@ func (m Model) renderWithDialog() string {
 		dialog = m.renderClearTimelineDialog()
 	}
 
-	// Center dialog over main content
-	return m.overlayDialog(main, dialog)
-}
-
-// overlayDialog centers a dialog over the main content
-func (m Model) overlayDialog(main, dialog string) string {
-	mainLines := strings.Split(main, "\n")
-	dialogLines := strings.Split(dialog, "\n")
-
-	dialogWidth := 0
-	for _, line := range dialogLines {
-		if len(line) > dialogWidth {
-			dialogWidth = len(line)
-		}
-	}
-
-	// Calculate position
-	startY := (m.Height - len(dialogLines)) / 2
-	startX := (m.Width - dialogWidth) / 2
-
-	// Overlay dialog
-	for i, dialogLine := range dialogLines {
-		lineY := startY + i
-		if lineY >= 0 && lineY < len(mainLines) {
-			// Insert dialog line into main line
-			mainLine := mainLines[lineY]
-			// Ensure main line is long enough
-			for len(mainLine) < m.Width {
-				mainLine += " "
-			}
-			// Replace portion with dialog
-			if startX >= 0 && startX+len(dialogLine) <= len(mainLine) {
-				mainLines[lineY] = mainLine[:startX] + dialogLine + mainLine[startX+len(dialogLine):]
-			}
-		}
-	}
-
-	return strings.Join(mainLines, "\n")
+	// Center dialog on screen
+	return lipgloss.Place(
+		m.Width,
+		m.Height,
+		lipgloss.Center,
+		lipgloss.Center,
+		dialog,
+	)
 }
 
 // renderHelpDialog renders the help dialog
@@ -458,7 +486,13 @@ func (m Model) renderHelpDialog() string {
 	c := m.CurrentTheme.Colors
 
 	var b strings.Builder
-	b.WriteString(s.ModalTitle.Render("Keyboard Shortcuts") + "\n\n")
+
+	// App header
+	appName := lipgloss.NewStyle().Foreground(c.Primary).Bold(true).Render("nexus")
+	appDesc := lipgloss.NewStyle().Foreground(c.TextMuted).Render(" - A beautiful terminal task manager")
+	b.WriteString(appName + appDesc + "\n")
+	b.WriteString(lipgloss.NewStyle().Foreground(c.TextMuted).Render("by krisk248 • github.com/krisk248/nexus") + "\n")
+	b.WriteString(strings.Repeat("─", 45) + "\n\n")
 
 	sections := []struct {
 		title string
@@ -469,10 +503,10 @@ func (m Model) renderHelpDialog() string {
 			keys: [][]string{
 				{"Ctrl+C", "Exit (press twice)"},
 				{"Ctrl+U", "Undo"},
-				{"Ctrl+T", "Theme selector"},
 				{"Ctrl+E", "Export"},
 				{"?", "This help"},
 				{":", "Month overview"},
+				{"L", "Jump to logs"},
 				{"/", "Search tasks"},
 				{"Esc", "Clear search/filter"},
 				{"1/2/3", "Switch panes"},
@@ -508,7 +542,7 @@ func (m Model) renderHelpDialog() string {
 			title: "Timeline",
 			keys: [][]string{
 				{"j/k", "Scroll"},
-				{"C", "Clear timeline"},
+				{"Shift+C", "Clear timeline"},
 			},
 		},
 	}
@@ -709,6 +743,20 @@ func (m Model) renderOverview() string {
 
 // Helper methods for view
 
+// getTaskCheckboxText returns plain text checkbox (for length calculation)
+func (m Model) getTaskCheckboxText(task *domain.Task) string {
+	switch task.State {
+	case domain.TaskStateCompleted:
+		return "[✓] "
+	case domain.TaskStateDelegated:
+		return "[→] "
+	case domain.TaskStateDelayed:
+		return "[‖] "
+	default:
+		return "[ ] "
+	}
+}
+
 func (m Model) getTaskCheckbox(task *domain.Task) string {
 	c := m.CurrentTheme.Colors
 	switch task.State {
@@ -720,6 +768,20 @@ func (m Model) getTaskCheckbox(task *domain.Task) string {
 		return lipgloss.NewStyle().Foreground(c.TaskDelayed).Render("[‖] ")
 	default:
 		return lipgloss.NewStyle().Foreground(c.TaskTodo).Render("[ ] ")
+	}
+}
+
+// getPriorityText returns plain text priority (for length calculation)
+func (m Model) getPriorityText(task *domain.Task) string {
+	switch task.Priority {
+	case domain.PriorityHigh:
+		return "P1 "
+	case domain.PriorityMed:
+		return "P2 "
+	case domain.PriorityLow:
+		return "P3 "
+	default:
+		return ""
 	}
 }
 

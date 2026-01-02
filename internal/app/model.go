@@ -3,8 +3,9 @@ package app
 import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/krisk248/tasklog/internal/domain"
-	"github.com/krisk248/tasklog/internal/theme"
+	"github.com/krisk248/nexus/internal/domain"
+	"github.com/krisk248/nexus/internal/storage"
+	"github.com/krisk248/nexus/internal/theme"
 )
 
 // Model is the main application model
@@ -126,13 +127,53 @@ func (m Model) Init() tea.Cmd {
 // loadData returns a command to load saved data
 func (m Model) loadData() tea.Cmd {
 	return func() tea.Msg {
-		// TODO: Implement actual loading from storage
-		// For now, return empty loaded message
-		return LoadedMsg{
-			Tasks:    make(domain.TaskTree),
-			Timeline: make(domain.Timeline),
-			Theme:    "ultraviolet",
+		store, err := storage.NewStorage()
+		if err != nil {
+			// Return empty data on error
+			return LoadedMsg{
+				Tasks:    make(domain.TaskTree),
+				Timeline: make(domain.Timeline),
+				Theme:    "ultraviolet",
+			}
 		}
+
+		schema, err := store.Load()
+		if err != nil {
+			return LoadedMsg{
+				Tasks:    make(domain.TaskTree),
+				Timeline: make(domain.Timeline),
+				Theme:    "ultraviolet",
+			}
+		}
+
+		return LoadedMsg{
+			Tasks:    schema.Tasks,
+			Timeline: schema.Timeline,
+			Theme:    schema.Settings.Theme,
+		}
+	}
+}
+
+// saveData saves the current state to disk
+func (m Model) saveData() tea.Cmd {
+	return func() tea.Msg {
+		store, err := storage.NewStorage()
+		if err != nil {
+			return SavedMsg{Success: false, Error: err}
+		}
+
+		schema := &storage.StorageSchema{
+			Tasks:    m.Tasks,
+			Timeline: m.Timeline,
+			Settings: storage.Settings{
+				Theme:      "ultraviolet",
+				DateFormat: "January 2, 2006",
+				TimeFormat: "12h",
+			},
+		}
+
+		err = store.Save(schema)
+		return SavedMsg{Success: err == nil, Error: err}
 	}
 }
 

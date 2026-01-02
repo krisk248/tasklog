@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/krisk248/tasklog/internal/domain"
+	"github.com/krisk248/nexus/internal/domain"
 )
 
 // Message types for Bubbletea
@@ -141,6 +141,12 @@ type UndoMsg struct{}
 
 // SaveMsg triggers a save
 type SaveMsg struct{}
+
+// SavedMsg is sent after data is saved
+type SavedMsg struct {
+	Success bool
+	Error   error
+}
 
 // LoadedMsg is sent when data is loaded
 type LoadedMsg struct {

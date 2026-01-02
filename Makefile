@@ -1,7 +1,7 @@
 .PHONY: build run test clean install release
 
 # Binary name
-BINARY=tasklog
+BINARY=nexus
 
 # Go parameters
 GOCMD=go

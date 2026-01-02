@@ -131,128 +131,93 @@ func NewStyles(t Theme) Styles {
 	c := t.Colors
 
 	return Styles{
-		// Base styles
+		// Base styles - no explicit background, let terminal handle it
 		App: lipgloss.NewStyle().
-			Background(c.Background).
 			Foreground(c.TextPrimary),
 
 		Pane: lipgloss.NewStyle().
-			Background(c.Background).
 			Foreground(c.TextPrimary).
 			Padding(0, 1),
 
 		Header: lipgloss.NewStyle().
 			Foreground(c.Primary).
-			Bold(true).
-			Background(c.Background),
+			Bold(true),
 
 		// Calendar styles
 		CalendarHeader: lipgloss.NewStyle().
 			Foreground(c.CalendarHeader).
-			Bold(true).
-			Background(c.Background),
+			Bold(true),
 
 		CalendarDay: lipgloss.NewStyle().
-			Foreground(c.TextPrimary).
-			Background(c.Background).
-			Width(3).
-			Align(lipgloss.Center),
+			Foreground(c.TextPrimary),
 
 		CalendarToday: lipgloss.NewStyle().
 			Foreground(c.CalendarToday).
-			Background(c.Surface).
-			Bold(true).
-			Width(3).
-			Align(lipgloss.Center),
+			Bold(true),
 
 		CalendarSelected: lipgloss.NewStyle().
-			Foreground(c.Background).
-			Background(c.CalendarSelected).
-			Bold(true).
-			Width(3).
-			Align(lipgloss.Center),
+			Foreground(c.CalendarSelected).
+			Bold(true),
 
 		CalendarOther: lipgloss.NewStyle().
-			Foreground(c.CalendarOtherMonth).
-			Background(c.Background).
-			Width(3).
-			Align(lipgloss.Center),
+			Foreground(c.CalendarOtherMonth),
 
 		CalendarWithTasks: lipgloss.NewStyle().
-			Foreground(c.CalendarDayWithTasks).
-			Background(c.Background).
-			Width(3).
-			Align(lipgloss.Center),
+			Foreground(c.CalendarDayWithTasks),
 
 		// Task styles
 		TaskItem: lipgloss.NewStyle().
-			Foreground(c.TaskTodo).
-			Background(c.Background),
+			Foreground(c.TaskTodo),
 
 		TaskSelected: lipgloss.NewStyle().
 			Foreground(c.FocusIndicator).
-			Background(c.Surface).
 			Bold(true),
 
 		TaskCompleted: lipgloss.NewStyle().
 			Foreground(c.TaskCompleted).
-			Background(c.Background).
 			Strikethrough(true),
 
 		TaskDelegated: lipgloss.NewStyle().
-			Foreground(c.TaskDelegated).
-			Background(c.Background),
+			Foreground(c.TaskDelegated),
 
 		TaskDelayed: lipgloss.NewStyle().
-			Foreground(c.TaskDelayed).
-			Background(c.Background),
+			Foreground(c.TaskDelayed),
 
 		TaskRunning: lipgloss.NewStyle().
 			Foreground(c.TaskRunning).
-			Background(c.Background).
 			Bold(true),
 
 		TaskPriority1: lipgloss.NewStyle().
 			Foreground(c.PriorityHigh).
-			Background(c.Background).
 			Bold(true),
 
 		TaskPriority2: lipgloss.NewStyle().
-			Foreground(c.PriorityMed).
-			Background(c.Background),
+			Foreground(c.PriorityMed),
 
 		TaskPriority3: lipgloss.NewStyle().
-			Foreground(c.PriorityLow).
-			Background(c.Background),
+			Foreground(c.PriorityLow),
 
 		// Timeline styles
 		TimelineItem: lipgloss.NewStyle().
-			Foreground(c.TextPrimary).
-			Background(c.Background),
+			Foreground(c.TextPrimary),
 
 		TimelineTimestamp: lipgloss.NewStyle().
-			Foreground(c.TimelineTimestamp).
-			Background(c.Background),
+			Foreground(c.TimelineTimestamp),
 
 		TimelineConnector: lipgloss.NewStyle().
-			Foreground(c.TimelineConnector).
-			Background(c.Background),
+			Foreground(c.TimelineConnector),
 
 		// UI styles
 		Separator: lipgloss.NewStyle().
-			Foreground(c.Separator).
-			Background(c.Background),
+			Foreground(c.Separator),
 
 		SeparatorFocus: lipgloss.NewStyle().
-			Foreground(c.FocusIndicator).
-			Background(c.Background),
+			Foreground(c.FocusIndicator),
 
 		KeyboardHint: lipgloss.NewStyle().
-			Foreground(c.TextMuted).
-			Background(c.Background),
+			Foreground(c.TextMuted),
 
 		Modal: lipgloss.NewStyle().
-			Background(c.Surface).
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(c.Border).
 			Padding(1, 2),
@@ -260,23 +225,19 @@ func NewStyles(t Theme) Styles {
 		ModalTitle: lipgloss.NewStyle().
 			Foreground(c.Primary).
 			Bold(true).
-			Background(c.Surface).
 			MarginBottom(1),
 
 		Dialog: lipgloss.NewStyle().
-			Background(c.Surface).
 			Border(lipgloss.DoubleBorder()).
 			BorderForeground(c.Primary).
 			Padding(1, 2),
 
 		Input: lipgloss.NewStyle().
 			Foreground(c.TextPrimary).
-			Background(c.Surface).
 			Padding(0, 1),
 
 		InputFocused: lipgloss.NewStyle().
 			Foreground(c.TextPrimary).
-			Background(c.Surface).
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(c.Primary).
 			Padding(0, 1),

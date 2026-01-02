@@ -1,15 +1,15 @@
 version: 2
 
-project_name: tasklog
+project_name: nexus
 
 before:
   hooks:
     - go mod tidy
 
 builds:
-  - id: tasklog
+  - id: nexus
     main: ./cmd/tasklog
-    binary: tasklog
+    binary: nexus
     env:
       - CGO_ENABLED=0
     goos:
@@ -55,34 +55,34 @@ changelog:
 release:
   github:
     owner: krisk248
-    name: tasklog
+    name: nexus
   draft: false
   prerelease: auto
   name_template: "v{{ .Version }}"
 
 brews:
-  - name: tasklog
+  - name: nexus
     repository:
       owner: krisk248
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     folder: Formula
-    homepage: "https://github.com/krisk248/tasklog"
-    description: "A beautiful terminal-based task logger with Ultraviolet theme"
+    homepage: "https://github.com/krisk248/nexus"
+    description: "A beautiful terminal-based task manager with Ultraviolet theme"
     license: "MIT"
     skip_upload: auto
     test: |
-      system "#{bin}/tasklog", "--version"
+      system "#{bin}/nexus", "--version"
     install: |
-      bin.install "tasklog"
+      bin.install "nexus"
 
 nfpms:
   - id: default
-    package_name: tasklog
+    package_name: nexus
     vendor: krisk248
-    homepage: "https://github.com/krisk248/tasklog"
+    homepage: "https://github.com/krisk248/nexus"
     maintainer: "krisk248"
-    description: "A beautiful terminal-based task logger with Ultraviolet theme"
+    description: "A beautiful terminal-based task manager with Ultraviolet theme"
     license: MIT
     formats:
       - deb

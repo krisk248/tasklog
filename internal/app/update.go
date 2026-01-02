@@ -4,7 +4,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/krisk248/tasklog/internal/domain"
+	"github.com/krisk248/nexus/internal/domain"
 )
 
 // Update handles all messages and updates the model
@@ -44,7 +44,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Add timeline event
 		event := domain.NewTimelineEvent(msg.Task.ID, msg.Task.Title, domain.EventCreated)
 		m.Timeline.AddEvent(m.SelectedDate.String(), event)
-		return m, nil
+		return m, m.saveData()
 
 	case TaskStateChangedMsg:
 		m.PushUndo()
@@ -54,21 +54,27 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Add timeline event
 		event := domain.NewStateChangeEvent(msg.Task.ID, msg.Task.Title, msg.PrevState, msg.NewState)
 		m.Timeline.AddEvent(m.SelectedDate.String(), event)
-		return m, nil
+		return m, m.saveData()
 
 	case TaskPriorityChangedMsg:
 		m.PushUndo()
 		msg.Task.SetPriority(msg.Priority)
 		m.UpdateFlattenedTasks()
 		m.IsDirty = true
-		return m, nil
+		return m, m.saveData()
 
 	case TaskDeletedMsg:
 		m.PushUndo()
 		m.Tasks.RemoveTask(m.SelectedDate.String(), msg.TaskID)
-		m.Timeline.RemoveEventsByTaskID(m.SelectedDate.String(), msg.TaskID)
+		// Keep timeline events for deleted tasks as historical log
 		m.UpdateFlattenedTasks()
 		m.IsDirty = true
+		return m, m.saveData()
+
+	case SavedMsg:
+		if msg.Success {
+			m.IsDirty = false
+		}
 		return m, nil
 
 	case ToggleDialogMsg:
@@ -133,6 +139,16 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m.handleSearchMode(msg)
 	}
 
+	// Handle overview mode - allow exit with Esc or :
+	if m.ShowOverview {
+		switch msg.String() {
+		case "esc", ":":
+			m.ShowOverview = false
+			return m, nil
+		}
+		return m, nil
+	}
+
 	// Global keys
 	switch msg.String() {
 	case "ctrl+c":
@@ -143,14 +159,11 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "ctrl+u":
 		return m, func() tea.Msg { return UndoMsg{} }
 
-	case "ctrl+t":
-		return m, func() tea.Msg { return ToggleDialogMsg{Dialog: DialogTheme} }
-
 	case "?":
 		return m, func() tea.Msg { return ToggleDialogMsg{Dialog: DialogHelp} }
 
 	case ":":
-		m.ShowOverview = !m.ShowOverview
+		m.ShowOverview = true
 		return m, nil
 
 	case "ctrl+e":
@@ -198,6 +211,11 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	case "shift+tab":
 		m.ActivePane = (m.ActivePane + 2) % 3
+		return m, nil
+
+	case "L":
+		// Quick jump to timeline/logs pane
+		m.ActivePane = PaneTimeline
 		return m, nil
 
 	case "esc":
@@ -340,6 +358,7 @@ func (m Model) handleTaskKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 				m.Timeline.AddEvent(m.SelectedDate.String(), event)
 			}
 			m.IsDirty = true
+			return m, m.saveData()
 		}
 	case "enter", "right":
 		// Expand/collapse
@@ -446,6 +465,7 @@ func (m Model) handleClearTimelineDialogKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd
 		m.Timeline.ClearDate(m.SelectedDate.String())
 		m.ActiveDialog = DialogNone
 		m.IsDirty = true
+		return m, m.saveData()
 	case "n", "N":
 		m.ActiveDialog = DialogNone
 	}
@@ -469,6 +489,11 @@ func (m Model) handleInputMode(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 				m.EditingTask.Title = value
 				m.EditingTask.UpdatedAt = time.Now()
 				m.IsDirty = true
+				m.CurrentMode = ModeNormal
+				m.TextInput.Blur()
+				m.EditingTask = nil
+				m.UpdateFlattenedTasks()
+				return m, m.saveData()
 			} else {
 				// Creating new task
 				task := domain.NewTask(value, m.SelectedDate.String())

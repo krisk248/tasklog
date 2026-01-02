@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/krisk248/tasklog/internal/domain"
+	"github.com/krisk248/nexus/internal/domain"
 )
 
 // StorageSchema represents the data structure saved to disk
@@ -57,19 +57,19 @@ func getDataPath() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		configDir = filepath.Join(home, "Library", "Application Support", "tasklog")
+		configDir = filepath.Join(home, "Library", "Application Support", "nexus")
 	case "windows":
-		configDir = filepath.Join(os.Getenv("APPDATA"), "tasklog")
+		configDir = filepath.Join(os.Getenv("APPDATA"), "nexus")
 	default: // Linux and others
 		// Check XDG_DATA_HOME first
 		if xdg := os.Getenv("XDG_DATA_HOME"); xdg != "" {
-			configDir = filepath.Join(xdg, "tasklog")
+			configDir = filepath.Join(xdg, "nexus")
 		} else {
 			home, err := os.UserHomeDir()
 			if err != nil {
 				return "", err
 			}
-			configDir = filepath.Join(home, ".config", "tasklog")
+			configDir = filepath.Join(home, ".local", "share", "nexus")
 		}
 	}
 
@@ -148,6 +148,52 @@ func (s *Storage) hydrateDates(schema *StorageSchema) {
 	// additional date hydration needed.
 }
 
+// GetExportPath returns the platform-specific export folder (Documents folder)
+func GetExportPath() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+
+	var exportDir string
+	switch runtime.GOOS {
+	case "darwin":
+		exportDir = filepath.Join(home, "Documents", "nexus-exports")
+	case "windows":
+		// Use Documents folder on Windows
+		exportDir = filepath.Join(home, "Documents", "nexus-exports")
+	default: // Linux and others
+		exportDir = filepath.Join(home, "Documents", "nexus-exports")
+	}
+
+	// Ensure directory exists
+	if err := os.MkdirAll(exportDir, 0755); err != nil {
+		return "", err
+	}
+
+	return exportDir, nil
+}
+
+// ExportToFile exports tasks to a file in the export folder
+func (s *Storage) ExportToFile(tasks domain.TaskTree, format ExportFormat, scope string, filename string) (string, error) {
+	content, err := s.Export(tasks, format, scope)
+	if err != nil {
+		return "", err
+	}
+
+	exportDir, err := GetExportPath()
+	if err != nil {
+		return "", err
+	}
+
+	filePath := filepath.Join(exportDir, filename)
+	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+		return "", err
+	}
+
+	return filePath, nil
+}
+
 // Export exports tasks to various formats
 type ExportFormat int
 
@@ -157,7 +203,7 @@ const (
 	FormatPlainText
 )
 
-// Export exports tasks to the specified format
+// Export exports tasks to the specified format (returns content as string)
 func (s *Storage) Export(tasks domain.TaskTree, format ExportFormat, scope string) (string, error) {
 	switch format {
 	case FormatMarkdown:

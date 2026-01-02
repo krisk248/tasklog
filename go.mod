@@ -1,4 +1,4 @@
-module github.com/krisk248/tasklog
+module github.com/krisk248/nexus
 
 go 1.24.0
 
