@@ -67,7 +67,7 @@ brews:
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     folder: Formula
-    homepage: "https://github.com/krisk248/nexus"
+    homepage: "https://github.com/krisk248/seyal"
     description: "A beautiful terminal-based task manager with Ultraviolet theme"
     license: "MIT"
     skip_upload: auto
@@ -80,7 +80,7 @@ nfpms:
   - id: default
     package_name: nexus
     vendor: krisk248
-    homepage: "https://github.com/krisk248/nexus"
+    homepage: "https://github.com/krisk248/seyal"
     maintainer: "krisk248"
     description: "A beautiful terminal-based task manager with Ultraviolet theme"
     license: MIT

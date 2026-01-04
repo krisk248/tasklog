@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/krisk248/nexus/internal/domain"
+	"github.com/krisk248/seyal/internal/domain"
 )
 
 // Message types for Bubbletea

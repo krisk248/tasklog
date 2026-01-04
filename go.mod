@@ -1,4 +1,4 @@
-module github.com/krisk248/nexus
+module github.com/krisk248/seyal
 
 go 1.24.0
 

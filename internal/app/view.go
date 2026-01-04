@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/krisk248/nexus/internal/domain"
+	"github.com/krisk248/seyal/internal/domain"
 )
 
 // View renders the entire application
@@ -563,10 +563,10 @@ func (m Model) renderHelpDialog() string {
 	var b strings.Builder
 
 	// App header
-	appName := lipgloss.NewStyle().Foreground(c.Primary).Bold(true).Render("nexus")
+	appName := lipgloss.NewStyle().Foreground(c.Primary).Bold(true).Render("seyal")
 	appDesc := lipgloss.NewStyle().Foreground(c.TextMuted).Render(" - A beautiful terminal task manager")
 	b.WriteString(appName + appDesc + "\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(c.TextMuted).Render("by krisk248 • github.com/krisk248/nexus") + "\n")
+	b.WriteString(lipgloss.NewStyle().Foreground(c.TextMuted).Render("by krisk248 • github.com/krisk248/seyal") + "\n")
 	b.WriteString(strings.Repeat("─", 45) + "\n\n")
 
 	sections := []struct {
@@ -823,7 +823,7 @@ func (m Model) renderHelpScreen() string {
 	b.WriteString(borderStyle.Render("╔" + strings.Repeat("═", contentWidth-2) + "╗") + "\n")
 
 	// Header
-	title := "NEXUS"
+	title := "SEYAL"
 	titlePadding := (contentWidth - 2 - len(title)) / 2
 	b.WriteString(borderStyle.Render("║") + strings.Repeat(" ", titlePadding) + headerStyle.Render(title) + strings.Repeat(" ", contentWidth-2-titlePadding-len(title)) + borderStyle.Render("║") + "\n")
 
@@ -959,12 +959,12 @@ func (m Model) renderHelpScreen() string {
 	b.WriteString(borderStyle.Render("╠" + strings.Repeat("═", contentWidth-2) + "╣") + "\n")
 
 	// Footer line 1: Description
-	footerLine1 := "nexus - Track tasks, manage time, stay focused."
+	footerLine1 := "seyal - Track tasks, manage time, stay focused."
 	footerPad1 := (contentWidth - 2 - len(footerLine1)) / 2
 	b.WriteString(borderStyle.Render("║") + strings.Repeat(" ", footerPad1) + mutedStyle.Render(footerLine1) + strings.Repeat(" ", contentWidth-2-footerPad1-len(footerLine1)) + borderStyle.Render("║") + "\n")
 
 	// Footer line 2: Author, GitHub, Version
-	footerLine2 := fmt.Sprintf("by krisk248 • github.com/krisk248/nexus • v%s", Version)
+	footerLine2 := fmt.Sprintf("by krisk248 • github.com/krisk248/seyal • v%s", Version)
 	footerPad2 := (contentWidth - 2 - len(footerLine2)) / 2
 	b.WriteString(borderStyle.Render("║") + strings.Repeat(" ", footerPad2) + mutedStyle.Render(footerLine2) + strings.Repeat(" ", contentWidth-2-footerPad2-len(footerLine2)) + borderStyle.Render("║") + "\n")
 

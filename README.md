@@ -1,6 +1,8 @@
-# nexus
+# seyal
 
 A beautiful terminal-based task manager with an **Ultraviolet** theme. Built with Go and [Bubbletea](https://github.com/charmbracelet/bubbletea).
+
+*"Seyal" (செயல்) means "action" or "deed" in Tamil - take action on your tasks!*
 
 ## Features
 
@@ -9,9 +11,10 @@ A beautiful terminal-based task manager with an **Ultraviolet** theme. Built wit
 - **Task states**: Todo, Completed, Delegated, Delayed
 - **Task priorities**: P1 (Critical), P2 (Important), P3 (Normal)
 - **Time tracking**: Start/stop timer on tasks
+- **Push to next day**: Move tasks forward with pushed count tracking
 - **Activity timeline**: Automatic logging of all task state changes
 - **Search & Filter**: Find tasks quickly, filter by state or priority
-- **Export**: Markdown, JSON, or Plain Text to ~/Documents/nexus-exports/
+- **Export**: Markdown, JSON, or Plain Text to ~/Documents/seyal-exports/
 - **Month Overview**: See all tasks in a month grid (`:`)
 - **Undo**: 50-state history
 - **Vim-style navigation**: hjkl + arrow keys
@@ -19,23 +22,19 @@ A beautiful terminal-based task manager with an **Ultraviolet** theme. Built wit
 
 ## Installation
 
-### From Releases (Recommended)
-
-Download the latest release for your platform from the [Releases](https://github.com/krisk248/nexus/releases) page.
-
-### From Source
+### From Source (Recommended)
 
 ```bash
-go install github.com/krisk248/nexus/cmd/tasklog@latest
+go install github.com/krisk248/seyal/cmd/seyal@latest
 ```
 
 Or clone and build:
 
 ```bash
-git clone https://github.com/krisk248/nexus.git
-cd nexus
-go build -o nexus ./cmd/tasklog
-./nexus
+git clone https://github.com/krisk248/seyal.git
+cd seyal
+go build -o seyal ./cmd/seyal
+./seyal
 ```
 
 ## Keyboard Shortcuts
@@ -71,10 +70,12 @@ go build -o nexus ./cmd/tasklog
 | `a` | Add task |
 | `e` | Edit task |
 | `d` | Delete task |
+| `v` | View full task details |
 | `Space` | Toggle complete |
 | `D` | Delegate task |
 | `x` | Toggle delayed |
 | `s` | Start/stop timer |
+| `n` | Push to next day |
 | `1/2/3` | Set priority P1/P2/P3 |
 | `0` | Clear priority |
 | `Enter` or `→` | Expand/collapse |
@@ -85,21 +86,21 @@ go build -o nexus ./cmd/tasklog
 | Key | Action |
 |-----|--------|
 | `j/k` or `↑/↓` | Scroll |
-| `C` | Clear timeline |
+| `Shift+C` | Clear timeline |
 
 ## Data Storage
 
 Your data is stored locally in a human-readable JSON file. This allows for easy backups or manual editing if necessary.
 
-- **macOS**: `~/Library/Application Support/nexus/data.json`
-- **Linux**: `~/.local/share/nexus/data.json` (or `$XDG_DATA_HOME`)
-- **Windows**: `%APPDATA%\nexus\data.json`
+- **macOS**: `~/Library/Application Support/seyal/data.json`
+- **Linux**: `~/.local/share/seyal/data.json` (or `$XDG_DATA_HOME`)
+- **Windows**: `%APPDATA%\seyal\data.json`
 
 ## Export
 
 Exports are saved to a common folder for easy access:
 
-- **All platforms**: `~/Documents/nexus-exports/`
+- **All platforms**: `~/Documents/seyal-exports/`
 
 ## Color Palette (Ultraviolet)
 

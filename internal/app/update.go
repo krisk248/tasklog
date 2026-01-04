@@ -4,7 +4,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/krisk248/nexus/internal/domain"
+	"github.com/krisk248/seyal/internal/domain"
 )
 
 // Update handles all messages and updates the model

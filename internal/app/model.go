@@ -3,12 +3,12 @@ package app
 import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/krisk248/nexus/internal/domain"
-	"github.com/krisk248/nexus/internal/storage"
-	"github.com/krisk248/nexus/internal/theme"
+	"github.com/krisk248/seyal/internal/domain"
+	"github.com/krisk248/seyal/internal/storage"
+	"github.com/krisk248/seyal/internal/theme"
 )
 
-// Version is the current version of nexus
+// Version is the current version of seyal
 var Version = "0.1.0"
 
 // Model is the main application model

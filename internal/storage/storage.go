@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/krisk248/nexus/internal/domain"
+	"github.com/krisk248/seyal/internal/domain"
 )
 
 // StorageSchema represents the data structure saved to disk
@@ -57,19 +57,19 @@ func getDataPath() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		configDir = filepath.Join(home, "Library", "Application Support", "nexus")
+		configDir = filepath.Join(home, "Library", "Application Support", "seyal")
 	case "windows":
-		configDir = filepath.Join(os.Getenv("APPDATA"), "nexus")
+		configDir = filepath.Join(os.Getenv("APPDATA"), "seyal")
 	default: // Linux and others
 		// Check XDG_DATA_HOME first
 		if xdg := os.Getenv("XDG_DATA_HOME"); xdg != "" {
-			configDir = filepath.Join(xdg, "nexus")
+			configDir = filepath.Join(xdg, "seyal")
 		} else {
 			home, err := os.UserHomeDir()
 			if err != nil {
 				return "", err
 			}
-			configDir = filepath.Join(home, ".local", "share", "nexus")
+			configDir = filepath.Join(home, ".local", "share", "seyal")
 		}
 	}
 
@@ -158,12 +158,12 @@ func GetExportPath() (string, error) {
 	var exportDir string
 	switch runtime.GOOS {
 	case "darwin":
-		exportDir = filepath.Join(home, "Documents", "nexus-exports")
+		exportDir = filepath.Join(home, "Documents", "seyal-exports")
 	case "windows":
 		// Use Documents folder on Windows
-		exportDir = filepath.Join(home, "Documents", "nexus-exports")
+		exportDir = filepath.Join(home, "Documents", "seyal-exports")
 	default: // Linux and others
-		exportDir = filepath.Join(home, "Documents", "nexus-exports")
+		exportDir = filepath.Join(home, "Documents", "seyal-exports")
 	}
 
 	// Ensure directory exists
